@@ -16,10 +16,10 @@ const tutorialSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    published: Boolean,
     dateCreated: Date,
     creators: [{ type: String }],
     description: String,
-    price: Number,
 });
 
 module.exports = mongoose.model("Tutorial", tutorialSchema);
