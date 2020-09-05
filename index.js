@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const mongoose = require("mongoose");
 const Tutorial = require("./models/tutorial");
 const { response } = require("express");
 
@@ -22,12 +21,13 @@ find all Tutorials which title contains 'kw'
 */
 app.get("/api/tutorials", async (req, res, next) => {
     try {
+        let tutorials;
         if (req.query.title) {
-            const tutorials = await Tutorial.find({
+            tutorials = await Tutorial.find({
                 title: new RegExp(req.query.title),
             });
         } else {
-            const tutorials = await Tutorial.find({});
+            tutorials = await Tutorial.find({});
         }
         res.json(tutorials);
     } catch (error) {
@@ -39,10 +39,11 @@ app.get("/api/tutorials", async (req, res, next) => {
 // GET - get tutorial by id
 app.get("/api/tutorials/:id", async (req, res, next) => {
     try {
+        let tutorials;
         if (req.params.id === "published") {
-            const tutorials = await Tutorial.find({ published: true });
+            tutorials = await Tutorial.find({ published: true });
         } else {
-            const tutorials = await Tutorial.findById(req.params.id);
+            tutorials = await Tutorial.findById(req.params.id);
         }
         res.json(tutorials);
     } catch (error) {
