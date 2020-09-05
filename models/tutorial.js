@@ -17,7 +17,6 @@ const tutorialSchema = new mongoose.Schema({
         required: true,
     },
     published: Boolean,
-    dateCreated: Date,
     creators: [{ type: String }],
     description: String,
 });
