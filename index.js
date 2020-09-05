@@ -20,48 +20,38 @@ app.use(requestLogger);
 api/tutorials?title=kw
 find all Tutorials which title contains 'kw'
 */
-app.get("/api/tutorials", (req, res) => {
-    if (req.query.title) {
-        Tutorial.find({ title: new RegExp(req.query.title) })
-            .then((tutorials) => {
-                res.json(tutorials);
-            })
-            .catch((error) => {
-                res.status(404).end();
+app.get("/api/tutorials", async (req, res, next) => {
+    try {
+        if (req.query.title) {
+            const tutorials = await Tutorial.find({
+                title: new RegExp(req.query.title),
             });
-    } else {
-        Tutorial.find({})
-            .then((tutorials) => {
-                res.json(tutorials);
-            })
-            .catch((error) => {
-                res.status(404).end();
-            });
+        } else {
+            const tutorials = await Tutorial.find({});
+        }
+        res.json(tutorials);
+    } catch (error) {
+        next(error);
     }
 });
 
-// GET - get tutorial by id
 // GET - find all published Tutorials
-app.get("/api/tutorials/:id", (req, res, next) => {
-    if (req.params.id === "published") {
-        Tutorial.find({ published: true })
-            .then((filteredTutorial) => {
-                res.json(filteredTutorial);
-            })
-            .catch((error) => {
-                res.status(404).end();
-            });
-    } else {
-        Tutorial.findById(req.params.id)
-            .then((tutorial) => {
-                res.json(tutorial);
-            })
-            .catch((error) => next(error));
+// GET - get tutorial by id
+app.get("/api/tutorials/:id", async (req, res, next) => {
+    try {
+        if (req.params.id === "published") {
+            const tutorials = await Tutorial.find({ published: true });
+        } else {
+            const tutorials = await Tutorial.findById(req.params.id);
+        }
+        res.json(tutorials);
+    } catch (error) {
+        next(error);
     }
 });
 
 // POST - add new tutorial
-app.post("/api/tutorials", (req, res) => {
+app.post("/api/tutorials", async (req, res, next) => {
     const body = req.body;
 
     if (!body.title) {
@@ -76,19 +66,16 @@ app.post("/api/tutorials", (req, res) => {
         creators: body.creators.slice(),
         description: body.description,
     });
-
-    tutorial
-        .save()
-        .then((savedTutorial) => {
-            res.json(savedTutorial);
-        })
-        .catch((error) => {
-            res.status(404).end();
-        });
+    try {
+        const savedTutorial = await tutorial.save();
+        res.json(savedTutorial);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // PUT - update tutorial by id
-app.put("/api/tutorials/:id", (req, res, next) => {
+app.put("/api/tutorials/:id", async (req, res, next) => {
     const body = req.body;
     if (!body.title) {
         return response.status(400).json({
@@ -99,37 +86,41 @@ app.put("/api/tutorials/:id", (req, res, next) => {
     const editedTutorial = {
         title: body.title,
         published: body.published,
-        creators: body.creators.slice(),
+        creators: body.creators,
         description: body.description,
     };
-
-    Tutorial.findByIdAndUpdate(req.params.id, editedTutorial, {
-        new: true,
-    })
-        .then((updatedNote) => {
-            res.json(updatedNote);
-        })
-        .catch((error) => next(error));
+    try {
+        const updatedTutorial = await Tutorial.findByIdAndUpdate(
+            req.params.id,
+            editedTutorial,
+            {
+                new: true,
+            }
+        );
+        res.json(updatedTutorial);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // DELETE - remove tutorial by id
-app.delete("/api/tutorials/:id", (req, res, next) => {
-    Tutorial.findByIdAndDelete(req.params.id)
-        .then(() => {
-            res.status(204).end();
-        })
-        .catch((error) => next(error));
+app.delete("/api/tutorials/:id", async (req, res, next) => {
+    try {
+        await Tutorial.findByIdAndRemove(req.params.id);
+        res.send(204).end();
+    } catch (error) {
+        next(error);
+    }
 });
 
 // DELETE - remove all tutorials
-app.delete("/api/tutorials", (req, res) => {
-    Tutorial.remove({})
-        .then(() => {
-            res.status(204).end();
-        })
-        .catch((error) => {
-            res.status(404).end();
-        });
+app.delete("/api/tutorials", async (req, res, next) => {
+    try {
+        await Tutorial.remove({});
+        res.send(204).end();
+    } catch (error) {
+        next(error);
+    }
 });
 
 const errorHandler = (error, request, response, next) => {
